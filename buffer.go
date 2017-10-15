@@ -24,13 +24,29 @@ func NewSimpleBuffer(size uint) *SimpleBuffer {
 	return &SimpleBuffer{C.new_fvec(C.uint_t(size))}
 }
 
+// NewSimpleBuffer constructs a new SimpleBuffer.
+//
+// The caller is responsible for calling Free on the returned
+// SimpleBuffer to release memory when done.
+//
+//     buf := NewSimpleBuffer(bufSize)
+//     defer buf.Free()
+func NewSimpleBufferData(size uint, data []float64) *SimpleBuffer {
+	b := C.new_fvec(C.uint_t(size))
+	for i := uint(0); i < uint(len(data)); i++ {
+		C.fvec_set_sample(b, C.smpl_t(data[i]), C.uint_t(i))
+	}
+	return &SimpleBuffer{b}
+}
+
+
 // Returns the contents of this buffer as a slice.
 // The data is copied so the slices are still valid even
 // after the buffer has changed.
 func (b *SimpleBuffer) Slice() []float64 {
 	sl := make([]float64, b.Size())
 	for i := uint(0); i < b.Size(); i++ {
-		sl[int(i)] = float64(C.fvec_read_sample(b.vec, C.uint_t(i)))
+		sl[int(i)] = float64(C.fvec_get_sample(b.vec, C.uint_t(i)))
 	}
 	return sl
 }
@@ -69,6 +85,16 @@ func NewComplexBuffer(size uint) *ComplexBuffer {
 	return &ComplexBuffer{data: C.new_cvec(C.uint_t(size))}
 }
 
+// NewComplexBuffer constructs a buffer with data.
+//
+func NewComplexBufferData(size uint, data []float64) *ComplexBuffer {
+	b := C.new_cvec(C.uint_t(size))
+	for i := uint(0); i < uint(len(data)); i++ {
+		C.cvec_norm_set_sample(b, C.smpl_t(data[i]), C.uint_t(i))
+	}
+	return &ComplexBuffer{b}
+}
+
 // Free frees the memory aubio has allocated for this buffer.
 func (cb *ComplexBuffer) Free() {
 	if cb.data != nil {
@@ -90,7 +116,7 @@ func (cb *ComplexBuffer) Size() uint {
 func (cb *ComplexBuffer) Norm() []float64 {
 	sl := make([]float64, cb.Size())
 	for i := uint(0); i < cb.Size(); i++ {
-		sl[int(i)] = float64(C.cvec_read_norm(cb.data, C.uint_t(i)))
+		sl[int(i)] = float64(C.cvec_norm_get_sample(cb.data, C.uint_t(i)))
 	}
 	return sl
 }
@@ -101,7 +127,7 @@ func (cb *ComplexBuffer) Norm() []float64 {
 func (cb *ComplexBuffer) Phase() []float64 {
 	sl := make([]float64, cb.Size())
 	for i := uint(0); i < cb.Size(); i++ {
-		sl[int(i)] = float64(C.cvec_read_phas(cb.data, C.uint_t(i)))
+		sl[int(i)] = float64(C.cvec_phas_get_sample(cb.data, C.uint_t(i)))
 	}
 	return sl
 }
@@ -145,7 +171,7 @@ func (lb *LongSampleBuffer) Size() uint {
 func (lb *LongSampleBuffer) Slice() []float64 {
 	sl := make([]float64, lb.Size())
 	for i := uint(0); i < lb.Size(); i++ {
-		sl[int(i)] = float64(C.lvec_read_sample(lb.vec, C.uint_t(i)))
+		sl[int(i)] = float64(C.lvec_get_sample(lb.vec, C.uint_t(i)))
 	}
 	return sl
 }

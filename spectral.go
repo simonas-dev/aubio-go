@@ -23,6 +23,34 @@ import (
 // fft
 
 // filterbank
+type FilterBank struct {
+	o *C.aubio_filterbank_t
+	buf *SimpleBuffer
+}
+
+func NewFilterBank(filters uint, win_s uint) *FilterBank {
+	return  &FilterBank {
+		o: C.new_aubio_filterbank(C.uint_t(filters), C.uint_t(win_s)),
+		buf: NewSimpleBuffer(win_s),
+	}
+}
+
+func (fb *FilterBank) Do(in *ComplexBuffer) {
+	if fb.o != nil {
+		C.aubio_filterbank_do(fb.o, in.data, fb.buf.vec)
+	} else {
+		log.Println("Called Do on empty FilterBank. Maybe you called Free previously?")
+	}
+}
+
+func (fb *FilterBank) SetMelCoeffsSlaney(sample uint) {
+	C.aubio_filterbank_set_mel_coeffs_slaney(fb.o, C.smpl_t(sample))
+}
+
+func (fb *FilterBank) Buffer() *SimpleBuffer {
+	return fb.buf
+}
+
 
 // mfcc
 
@@ -39,7 +67,9 @@ func NewPhaseVoc(bufSize, fftLen uint) (*PhaseVoc, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PhaseVoc{o: pvoc, grain: NewComplexBuffer(fftLen)}, nil
+	return &PhaseVoc{
+		o: pvoc,
+		grain: NewComplexBuffer(fftLen)}, nil
 }
 
 func (pv *PhaseVoc) Free() {
@@ -57,8 +87,9 @@ func (pv *PhaseVoc) Grain() *ComplexBuffer {
 	return pv.grain
 }
 
+
 func (pv *PhaseVoc) Do(in *SimpleBuffer) {
-	if pv.o != nil {
+	if pv != nil || pv.o != nil {
 		C.aubio_pvoc_do(pv.o, in.vec, pv.grain.data)
 	} else {
 		log.Println("Called Do on empty PhaseVoc. Maybe you called Free previously?")

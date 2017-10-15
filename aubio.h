@@ -45,7 +45,7 @@
   getter functions. However, memory resizing can take place in setter
   functions.
 
-  \subsection vectors Vectors
+  \subsection vectors .vectors
 
   Two basic structures are being used in aubio: ::fvec_t and ::cvec_t. The
   ::fvec_t structures are used to store vectors of floating pointer number.
