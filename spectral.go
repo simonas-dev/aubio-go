@@ -31,7 +31,7 @@ type FilterBank struct {
 func NewFilterBank(filters uint, win_s uint) *FilterBank {
 	return  &FilterBank {
 		o: C.new_aubio_filterbank(C.uint_t(filters), C.uint_t(win_s)),
-		buf: NewSimpleBuffer(win_s),
+		buf: NewSimpleBuffer(filters),
 	}
 }
 
@@ -69,7 +69,7 @@ func NewPhaseVoc(bufSize, fftLen uint) (*PhaseVoc, error) {
 	}
 	return &PhaseVoc{
 		o: pvoc,
-		grain: NewComplexBuffer(fftLen)}, nil
+		grain: NewComplexBuffer(bufSize)}, nil
 }
 
 func (pv *PhaseVoc) Free() {
